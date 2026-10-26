@@ -96,12 +96,16 @@ app.post('/api/scraper/cardmarket', async (req: Request, res: Response) => {
     const { cardUrl, remoteVpsUrl, cardSlug } = req.body;
     const rates = await getLiveFxRates();
 
+    if (remoteVpsUrl && remoteVpsUrl !== process.env.SCRAPER_SERVICE_URL) {
+      return res.status(400).json({ error: 'Scraper URL must match the server-configured SCRAPER_SERVICE_URL.' });
+    }
     // If the user configured a remote Hetzner VPS microservice URL, proxy the request to it
     if (remoteVpsUrl && (remoteVpsUrl.startsWith('http://') || remoteVpsUrl.startsWith('https://'))) {
       try {
         const vpsResp = await fetch(`${remoteVpsUrl.replace(/\/$/, '')}/scrape`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          redirect: 'error',
           body: JSON.stringify({ cardUrl }),
           signal: AbortSignal.timeout(12000),
         });
@@ -150,7 +154,8 @@ app.post('/api/scraper/cardmarket', async (req: Request, res: Response) => {
     };
 
     return res.json({
-      source: 'cardmarket-stealth-engine',
+      source: 'demo-simulation',
+      simulated: true,
       url: cardUrl || `https://www.cardmarket.com/en/Pokemon/Products/Singles/${effectiveSlug}`,
       cardName: match.name,
       currency: 'EUR',
@@ -565,7 +570,10 @@ app.post('/api/discord-webhook', async (req: Request, res: Response) => {
   try {
     const { webhookUrl, cardName, setNumber, economics, imageUrl } = req.body;
 
-    const effectiveUrl = webhookUrl || process.env.DISCORD_WEBHOOK_URL;
+    if (webhookUrl && webhookUrl !== process.env.DISCORD_WEBHOOK_URL) {
+      return res.status(400).json({ error: 'Use the server-configured Discord webhook.' });
+    }
+    const effectiveUrl = process.env.DISCORD_WEBHOOK_URL;
 
     // Build the exact Discord Embed and Action Row Button payload requested by the user
     const traderaSearchUrl = `https://www.tradera.com/search?q=${encodeURIComponent(`${cardName} ${setNumber}`)}&itemStatus=Active`;

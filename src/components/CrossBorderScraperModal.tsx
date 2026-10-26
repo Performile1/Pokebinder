@@ -385,7 +385,7 @@ curl -X POST http://localhost:3001/scrape \\
                     <div className="flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                       <span className="font-bold text-slate-900 text-xs">
-                        Skrapning slutförd ({scraperResult.source})
+                        {scraperResult.simulated ? 'DEMO — simulated prices, not live market data' : 'Skrapning slutförd'} ({scraperResult.source})
                       </span>
                     </div>
                     <span className="text-[11px] font-mono text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">

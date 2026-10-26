@@ -55,7 +55,8 @@ import {
   deleteCollectionCard,
   getLocalCollection,
 } from './services/collectionService';
-import { testFirestoreConnection } from './firebase';
+import { testFirestoreConnection, auth } from './firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 
 import { CameraScanner } from './components/CameraScanner';
 import { ScanQueue } from './components/ScanQueue';
@@ -145,18 +146,12 @@ export default function App() {
   >('home');
 
   // User Authentication & Collector Profile
-  const [currentUser, setCurrentUser] = useState<CollectorProfile | null>(() => {
-    try {
-      const saved = localStorage.getItem('pokearb_user');
-      if (saved) return JSON.parse(saved);
-    } catch {}
-    return {
-      uid: 'demo-wigrund81',
-      email: 'wigrund81@gmail.com',
-      displayName: 'wigrund81',
-      isAnonymous: false,
-    };
-  });
+  const [currentUser, setCurrentUser] = useState<CollectorProfile | null>(null);
+  const [language, setLanguage] = useState<'en' | 'sv'>(() => localStorage.getItem('pokearb_language') === 'sv' ? 'sv' : 'en');
+  useEffect(() => { localStorage.setItem('pokearb_language', language); }, [language]);
+  useEffect(() => onAuthStateChanged(auth, user => {
+    setCurrentUser(user ? { uid: user.uid, email: user.email || '', displayName: user.displayName || user.email?.split('@')[0] || 'Collector', isAnonymous: user.isAnonymous } : null);
+  }), []);
   const [showAuthModal, setShowAuthModal] = useState<boolean>(false);
 
   // User Card Collection with Profit Sell Alerts
@@ -264,20 +259,12 @@ export default function App() {
 
   // Subscribe to user collection changes (realtime Firestore + local cache)
   useEffect(() => {
+    setCollection(getLocalCollection(currentUser?.uid || 'demo-collector'));
     const unsub = subscribeToUserCollection(currentUser?.uid || 'demo-collector', (cards) => {
       setCollection(cards);
     });
     return () => unsub();
   }, [currentUser?.uid]);
-
-  const handleUserChange = (user: CollectorProfile | null) => {
-    setCurrentUser(user);
-    if (user) {
-      localStorage.setItem('pokearb_user', JSON.stringify(user));
-    } else {
-      localStorage.removeItem('pokearb_user');
-    }
-  };
 
   const handleAddCardToCollection = async (card: CollectionCardItem) => {
     const updated = await saveCollectionCard(currentUser?.uid || 'demo-collector', card);
@@ -658,6 +645,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-red-500/20 selection:text-red-700">
+      <p role="note" className="bg-amber-100 text-amber-950 p-3 text-sm text-center">{language === 'sv' ? 'Förhandsversion: priser, prognoser och vissa kortresultat är simulerade. Inga riktiga köp genomförs.' : 'Preview: prices, forecasts and some card results are simulated. No real purchases are processed.'}</p>
       {/* Top Header Navigation - Bright Pokémon Pokéball Red & White Theme */}
       <header className="sticky top-0 z-40 bg-white border-b-2 border-red-600 shadow-sm backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-col sm:flex-row items-center justify-between gap-3">
@@ -759,6 +747,9 @@ export default function App() {
               <Settings className="w-4 h-4" />
             </button>
 
+            <select aria-label="Account language / Kontospråk" value={language} onChange={e => setLanguage(e.target.value as 'en' | 'sv')}>
+              <option value="en">English (account)</option><option value="sv">Svenska (konto)</option>
+            </select>
             {/* Collector Profile / Login Button */}
             <button
               onClick={() => setShowAuthModal(true)}
@@ -766,7 +757,7 @@ export default function App() {
               title="Hantera ditt samlarkonto och molnsynkning"
             >
               <User className="w-3.5 h-3.5 text-red-400" />
-              <span>{currentUser ? currentUser.displayName : 'Logga in'}</span>
+              <span>{currentUser ? currentUser.displayName : language === 'sv' ? 'Logga in / Skapa konto' : 'Sign in / Register'}</span>
             </button>
           </div>
         </div>
@@ -1208,6 +1199,7 @@ export default function App() {
         />
       )}
 
+      <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} currentUser={currentUser} language={language} />
       <TargetCardSearchModal
         isOpen={showSearchTargetModal}
         onClose={() => setShowSearchTargetModal(false)}
