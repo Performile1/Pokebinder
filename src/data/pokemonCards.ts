@@ -1,4 +1,4 @@
-import { PokemonCard } from '../types';
+import type { PokemonCard } from '../types.js';
 
 export const POKEMON_CARD_DATABASE: PokemonCard[] = [
   {

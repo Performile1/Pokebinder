@@ -2,9 +2,9 @@ import express, { Request, Response } from 'express';
 import path from 'path';
 import dotenv from 'dotenv';
 import { GoogleGenAI } from '@google/genai';
-import { searchPokemonCards, POKEMON_CARD_DATABASE } from './src/data/pokemonCards';
-import { POKECOLLECTOR_SETS, generatePriceTimeline } from './src/data/pokecollectorCatalog';
-import { PokemonCard } from './src/types';
+import { searchPokemonCards, POKEMON_CARD_DATABASE } from './src/data/pokemonCards.js';
+import { POKECOLLECTOR_SETS, generatePriceTimeline } from './src/data/pokecollectorCatalog.js';
+import type { PokemonCard } from './src/types.js';
 
 dotenv.config();
 

@@ -133,7 +133,7 @@ CMD ["node", "server.js"]`;
 import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 
-// Aktivera stealth-modulen för att passera Cardmarkets Cloudflare-skydd
+// Browser plugin; does not guarantee access to protected websites.
 puppeteer.use(StealthPlugin());
 
 const app = express();
@@ -217,11 +217,11 @@ curl -X POST http://localhost:3001/scrape \\
               <h3 className="font-extrabold text-slate-900 text-base flex items-center gap-2">
                 Cross-Border Scraper &amp; Microservice Hub
                 <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-mono font-bold">
-                  Cardmarket Cloudflare Bypass
+                  Cardmarket Data & Demo
                 </span>
               </h3>
               <p className="text-xs text-slate-500 font-mono">
-                Puppeteer-Stealth Docker Architecture &bull; EU vs Tradera Arbitrage &bull; Mercari Japan Moms Calculator
+                Remote scraper setup &bull; Demo pricing &bull; Import calculator
               </p>
             </div>
           </div>
@@ -290,10 +290,10 @@ curl -X POST http://localhost:3001/scrape \\
                 <div className="flex items-center justify-between">
                   <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-1.5">
                     <Play className="w-3.5 h-3.5 text-red-600" />
-                    Testa Cardmarket Stealth Scraper
+                    Testa Cardmarket-data
                   </h4>
                   <span className="text-[11px] font-mono text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                    Bypasses Cloudflare CAPTCHA
+                    Remote service required for live data
                   </span>
                 </div>
 
@@ -359,7 +359,7 @@ curl -X POST http://localhost:3001/scrape \\
                       Egen Hetzner VPS Microservice URL (Valfritt):
                     </span>
                     <span className="text-[10px] text-slate-400 font-mono">
-                      {remoteVpsUrl ? 'Proxyar anrop till din VPS' : 'Kör inbyggd stealth-motor'}
+                      {remoteVpsUrl ? 'Proxyar anrop till din VPS' : 'Visa simulerade demopriser'}
                     </span>
                   </div>
                   <input
@@ -373,7 +373,7 @@ curl -X POST http://localhost:3001/scrape \\
                     className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono text-slate-700"
                   />
                   <p className="text-[11px] text-slate-500">
-                    Om du har startat Docker-containern på en Hetzner CX22 VPS anger du IP-adressen ovan. Annars används AI Studios integrerade stealth-proxy.
+                    Live-data kräver en separat tjänst och serverkonfigurationen SCRAPER_SERVICE_URL. Utan tjänsten visas endast simulerade demopriser. Ingen integrerad proxy eller CAPTCHA-bypass finns.
                   </p>
                 </div>
               </div>
@@ -464,10 +464,10 @@ curl -X POST http://localhost:3001/scrape \\
               <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-2">
                 <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-1.5">
                   <Cpu className="w-4 h-4 text-red-600" />
-                  Varför behövs en Hetzner VPS för Puppeteer Stealth?
+                  Separat tjänst för live-data
                 </h4>
                 <p className="text-xs text-slate-600 leading-relaxed">
-                  Serverless-miljöer (som Vercel eller Lambda) har en hård gräns på 50 MB och saknar de grafiska Linux-bibliotek som Chromium behöver för att starta. För att skrapa Cardmarket utan att fastna i Cloudflares CAPTCHA-skydd kör vi en separat microservice i en officiell Debian-baserad Puppeteer-container på en billig Hetzner CX22-server (~45 kr/månad).
+                  Docker-exemplet nedan är en separat tjänst som du själv måste driftsätta och underhålla. Appen innehåller ingen fungerande inbyggd skrapmotor. Åtkomst till externa webbplatser kan nekas; CAPTCHA-bypass garanteras inte. Använd endast datakällor du har tillstånd att komma åt.
                 </p>
               </div>
 
@@ -698,7 +698,7 @@ curl -X POST http://localhost:3001/scrape \\
         {/* Footer */}
         <div className="p-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between">
           <span className="text-xs text-slate-500 font-mono">
-            Integrerad med ECB &bull; Frankfurter API &bull; Cardmarket Cloudflare Stealth
+            Frankfurter API &bull; Simulerade priser utan separat datatjänst
           </span>
           <button
             onClick={onClose}
