@@ -1,44 +1,46 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
-    }
-
-    function isValidId(id) {
-      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
-    }
-
-    // Default deny all
-    match /{document=**} {
-      allow read, write: if false;
-    }
-
-    // User Profile
-    match /users/{userId} {
-      allow read, write: if isOwner(userId) && isValidId(userId);
-
-      // Personal Collection subcollection
-      match /collection/{cardId} {
-        allow read, write: if isOwner(userId);
+    function owner(uid) { return request.auth != null && request.auth.uid == uid; }
+    function admin() { return request.auth != null && request.auth.token.email_verified == true && request.auth.token.admin == true; }
+    match /users/{uid} {
+      allow read: if owner(uid);
+      allow create, update: if owner(uid)
+        && request.resource.data.keys().hasOnly(['displayName', 'language', 'updatedAt'])
+        && request.resource.data.displayName is string
+        && request.resource.data.displayName.size() > 0
+        && request.resource.data.displayName.size() <= 80
+        && request.resource.data.language in ['en', 'sv']
+        && request.resource.data.updatedAt == request.time;
+      match /collection/{id} {
+        allow read, delete: if owner(uid);
+        allow create, update: if owner(uid)
+          && request.resource.data.userId == uid
+          && request.resource.data.id == id
+          && request.resource.data.cardName is string
+          && request.resource.data.cardName.size() <= 200
+          && request.resource.data.purchasePriceSek is number
+          && request.resource.data.purchasePriceSek >= 0;
       }
-
-      // User marketplace listings
-      match /listings/{listingId} {
-        allow read, write: if isOwner(userId);
+      match /listings/{id} {
+        allow read: if owner(uid);
+        // Publication requires a future trusted, validated marketplace backend.
+        allow write: if false;
       }
     }
-
-    // Orders placed through in-app buy flow
-    match /orders/{orderId} {
-      allow create: if isSignedIn() && request.resource.data.buyerId == request.auth.uid;
-      allow read: if isSignedIn() && resource.data.buyerId == request.auth.uid;
-      allow update: if isSignedIn() && resource.data.buyerId == request.auth.uid;
+    match /orders/{id} {
+      allow read: if request.auth != null && resource.data.buyerId == request.auth.uid;
+      // No client may invent a completed payment or change an order's owner.
+      allow write: if false;
     }
+    match /integrationSettings/{provider} {
+      allow read: if admin();
+      allow write: if false;
+    }
+    match /auditLogs/{id} {
+      allow read: if admin();
+      allow write: if false;
+    }
+    match /{document=**} { allow read, write: if false; }
   }
 }

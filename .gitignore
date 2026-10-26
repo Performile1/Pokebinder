@@ -6,3 +6,7 @@ coverage/
 *.log
 .env*
 !.env.example
+
+.firebase-deploy.generated.json
+functions/.env*
+functions/node_modules/
