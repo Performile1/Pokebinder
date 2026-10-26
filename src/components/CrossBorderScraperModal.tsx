@@ -73,6 +73,10 @@ export function CrossBorderScraperModal({
         }),
       });
 
+      const contentType = res.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        throw new Error(`Scraping API returned a non-JSON response (HTTP ${res.status}). Check that the backend is deployed and available.`);
+      }
       const data = await res.json();
       if (res.ok) {
         setScraperResult(data);
