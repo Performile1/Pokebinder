@@ -1,0 +1,247 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User account and collector portfolio settings",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "User UID from Firebase Auth"
+        },
+        "email": {
+          "type": "string",
+          "description": "Collector email address"
+        },
+        "displayName": {
+          "type": "string",
+          "description": "Collector display name or alias"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Creation timestamp ISO string"
+        }
+      },
+      "required": ["userId", "email"]
+    },
+    "CollectionCard": {
+      "title": "CollectionCard",
+      "description": "A saved card in user collection with profit target alert and acquisition details",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Document ID"
+        },
+        "userId": {
+          "type": "string",
+          "description": "Owner user UID"
+        },
+        "cardId": {
+          "type": "string",
+          "description": "Unique identifier of the Pokemon card"
+        },
+        "cardName": {
+          "type": "string",
+          "description": "Card name"
+        },
+        "setNumber": {
+          "type": "string",
+          "description": "Set number, e.g. 199/165"
+        },
+        "setName": {
+          "type": "string",
+          "description": "Set name, e.g. Pokémon 151"
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "Card artwork URL"
+        },
+        "acquisitionType": {
+          "type": "string",
+          "enum": ["purchase", "pack_pull"],
+          "description": "Whether bought individually or pulled from booster pack"
+        },
+        "purchasePriceSek": {
+          "type": "number",
+          "description": "Cost paid in SEK or allocated pack cost"
+        },
+        "packCostSek": {
+          "type": "number",
+          "description": "Cost of the booster pack if pulled"
+        },
+        "packBatchCode": {
+          "type": "string",
+          "description": "Batch code or print run stamp on booster pack foil or box"
+        },
+        "targetProfitPercentage": {
+          "type": "number",
+          "description": "Desired profit margin percentage before triggering sell alert"
+        },
+        "targetSellPriceSek": {
+          "type": "number",
+          "description": "Target sell price calculated from cost and target profit"
+        },
+        "currentMarketPriceSek": {
+          "type": "number",
+          "description": "Latest tracked market price in SEK"
+        },
+        "currentProfitPercentage": {
+          "type": "number",
+          "description": "Live profit or loss percentage"
+        },
+        "alertTriggered": {
+          "type": "boolean",
+          "description": "True when current market price meets or exceeds target sell threshold"
+        },
+        "condition": {
+          "type": "string",
+          "description": "Physical condition or slab grade"
+        },
+        "notes": {
+          "type": "string",
+          "description": "Collector notes"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp ISO string"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp ISO string"
+        }
+      },
+      "required": ["id", "userId", "cardName", "acquisitionType", "purchasePriceSek", "targetProfitPercentage"]
+    },
+    "MarketplaceListing": {
+      "title": "MarketplaceListing",
+      "description": "Cross-platform generated listing for Tradera, eBay, Cardmarket or Blocket",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Listing ID"
+        },
+        "userId": {
+          "type": "string",
+          "description": "Author UID"
+        },
+        "cardId": {
+          "type": "string",
+          "description": "Pokemon card reference ID"
+        },
+        "cardName": {
+          "type": "string",
+          "description": "Card title"
+        },
+        "setNumber": {
+          "type": "string",
+          "description": "Card set number"
+        },
+        "platform": {
+          "type": "string",
+          "enum": ["tradera", "ebay", "cardmarket", "blocket"],
+          "description": "Target selling platform"
+        },
+        "listingTitle": {
+          "type": "string",
+          "description": "SEO-optimized listing title"
+        },
+        "description": {
+          "type": "string",
+          "description": "Full formatted description"
+        },
+        "askingPriceSek": {
+          "type": "number",
+          "description": "Listing price in SEK"
+        },
+        "startingBidSek": {
+          "type": "number",
+          "description": "Auction starting bid if applicable"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["draft", "active", "sold"],
+          "description": "Listing status"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp ISO string"
+        }
+      },
+      "required": ["id", "userId", "cardName", "platform", "listingTitle", "askingPriceSek"]
+    },
+    "AppOrder": {
+      "title": "AppOrder",
+      "description": "In-app peer or verified marketplace purchase order",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Order ID"
+        },
+        "buyerId": {
+          "type": "string",
+          "description": "Buyer user UID"
+        },
+        "buyerEmail": {
+          "type": "string",
+          "description": "Buyer email"
+        },
+        "cardId": {
+          "type": "string",
+          "description": "Purchased card ID"
+        },
+        "cardName": {
+          "type": "string",
+          "description": "Card title"
+        },
+        "cardImageUrl": {
+          "type": "string",
+          "description": "Card photo"
+        },
+        "priceSek": {
+          "type": "number",
+          "description": "Card item cost in SEK"
+        },
+        "shippingSek": {
+          "type": "number",
+          "description": "Shipping fee in SEK"
+        },
+        "paymentMethod": {
+          "type": "string",
+          "enum": ["swish", "card", "klarna"],
+          "description": "Payment method used"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["completed", "pending", "shipped"],
+          "description": "Order fulfillment status"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp ISO string"
+        }
+      },
+      "required": ["id", "buyerId", "cardName", "priceSek", "paymentMethod", "status"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profile document"
+    },
+    "/users/{userId}/collection/{cardId}": {
+      "schema": "CollectionCard",
+      "description": "User's personal Pokemon card collection with profit targets and batch codes"
+    },
+    "/users/{userId}/listings/{listingId}": {
+      "schema": "MarketplaceListing",
+      "description": "Draft and published platform listings"
+    },
+    "/orders/{orderId}": {
+      "schema": "AppOrder",
+      "description": "Orders created when buying cards directly in the app"
+    }
+  }
+}

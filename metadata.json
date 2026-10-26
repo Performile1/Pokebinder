@@ -1,0 +1,10 @@
+{
+  "name": "PokéArb Scanner - Pokémon TCG Auto-Snap & Arbitrage Engine",
+  "description": "High-volume continuous Pokémon card scanner with client-side edge & blur auto-capture, condition grading pre-screener, Tradera vs. eBay cross-border arbitrage calculator, and automated Discord alerts.",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
