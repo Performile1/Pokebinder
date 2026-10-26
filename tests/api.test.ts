@@ -27,6 +27,17 @@ test('scraper endpoint returns JSON through the serverless entry', async () => {
     assert.equal(response.status, 200);
     assert.match(response.headers.get('content-type') || '', /application\/json/);
     const result = await response.json();
+    assert.equal(result.simulated, true);
+    const blocked = await originalFetch(`http://127.0.0.1:${address.port}/api/scraper/cardmarket`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ remoteVpsUrl: 'http://127.0.0.1:9999' }),
+    });
+    assert.equal(blocked.status, 400);
+    const webhook = await originalFetch(`http://127.0.0.1:${address.port}/api/discord-webhook`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ webhookUrl: 'http://127.0.0.1:9999' }),
+    });
+    assert.equal(webhook.status, 400);
     assert.equal(result.priceTrendEUR, 285);
     assert.equal(result.priceTrendSEK, 3135);
   } finally {

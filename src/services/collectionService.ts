@@ -7,7 +7,7 @@ import {
   onSnapshot,
   query,
 } from 'firebase/firestore';
-import { db, handleFirestoreError, OperationType } from '../firebase';
+import { auth, db, handleFirestoreError, OperationType } from '../firebase';
 import { CollectionCardItem, AppOrderRecord } from '../types';
 
 const LOCAL_STORAGE_COLLECTION_KEY = 'pokearb_user_collection';
@@ -101,21 +101,21 @@ export const INITIAL_DEMO_COLLECTION: CollectionCardItem[] = [
   },
 ];
 
-export function getLocalCollection(): CollectionCardItem[] {
+export function getLocalCollection(userId = auth.currentUser?.uid || 'guest'): CollectionCardItem[] {
   try {
-    const raw = localStorage.getItem(LOCAL_STORAGE_COLLECTION_KEY);
+    const raw = localStorage.getItem(`${LOCAL_STORAGE_COLLECTION_KEY}:${userId}`);
     if (raw) {
       return JSON.parse(raw);
     }
   } catch (err) {
     console.error('Failed reading local collection:', err);
   }
-  return INITIAL_DEMO_COLLECTION;
+  return [];
 }
 
-export function saveLocalCollection(items: CollectionCardItem[]): void {
+export function saveLocalCollection(items: CollectionCardItem[], userId = auth.currentUser?.uid || 'guest'): void {
   try {
-    localStorage.setItem(LOCAL_STORAGE_COLLECTION_KEY, JSON.stringify(items));
+    localStorage.setItem(`${LOCAL_STORAGE_COLLECTION_KEY}:${userId}`,  JSON.stringify(items));
   } catch (err) {
     console.error('Failed saving local collection:', err);
   }
@@ -150,7 +150,7 @@ export async function saveCollectionCard(
   const recalculated = recalculateCardEconomics(cardData);
 
   // 1. Update localStorage instantly
-  const local = getLocalCollection();
+  const local = getLocalCollection(userId);
   const existingIdx = local.findIndex((c) => c.id === recalculated.id);
   let updatedList: CollectionCardItem[];
   if (existingIdx >= 0) {
@@ -159,7 +159,7 @@ export async function saveCollectionCard(
   } else {
     updatedList = [recalculated, ...local];
   }
-  saveLocalCollection(updatedList);
+  saveLocalCollection(updatedList, userId);
 
   // 2. Sync to Firestore if authenticated
   if (userId && userId !== 'demo-collector' && !userId.startsWith('guest-')) {
@@ -180,9 +180,9 @@ export async function saveCollectionCard(
  */
 export async function deleteCollectionCard(userId: string, cardDocId: string): Promise<void> {
   // Update localStorage
-  const local = getLocalCollection();
+  const local = getLocalCollection(userId);
   const filtered = local.filter((c) => c.id !== cardDocId);
-  saveLocalCollection(filtered);
+  saveLocalCollection(filtered, userId);
 
   // Sync to Firestore
   if (userId && userId !== 'demo-collector' && !userId.startsWith('guest-')) {
@@ -200,7 +200,7 @@ export async function deleteCollectionCard(userId: string, cardDocId: string): P
  */
 export async function fetchUserCollection(userId: string): Promise<CollectionCardItem[]> {
   if (!userId || userId === 'demo-collector' || userId.startsWith('guest-')) {
-    return getLocalCollection();
+    return getLocalCollection(userId);
   }
 
   const path = `users/${userId}/collection`;
@@ -208,7 +208,7 @@ export async function fetchUserCollection(userId: string): Promise<CollectionCar
     const snap = await getDocs(collection(db, path));
     if (snap.empty) {
       // If Firestore is empty for this user, seed with local collection
-      const local = getLocalCollection();
+      const local = getLocalCollection(userId);
       for (const item of local) {
         await setDoc(doc(db, path, item.id), { ...item, userId });
       }
@@ -218,11 +218,11 @@ export async function fetchUserCollection(userId: string): Promise<CollectionCar
     snap.forEach((d) => {
       cards.push(d.data() as CollectionCardItem);
     });
-    saveLocalCollection(cards);
+    saveLocalCollection(cards, userId);
     return cards;
   } catch (err) {
     console.warn('Firestore fetch failed, using local cache:', err);
-    return getLocalCollection();
+    return getLocalCollection(userId);
   }
 }
 
@@ -234,7 +234,7 @@ export function subscribeToUserCollection(
   onUpdate: (cards: CollectionCardItem[]) => void
 ): () => void {
   if (!userId || userId === 'demo-collector' || userId.startsWith('guest-')) {
-    onUpdate(getLocalCollection());
+    onUpdate(getLocalCollection(userId));
     return () => {};
   }
 
@@ -244,12 +244,12 @@ export function subscribeToUserCollection(
     (snap) => {
       const items: CollectionCardItem[] = [];
       snap.forEach((d) => items.push(d.data() as CollectionCardItem));
-      saveLocalCollection(items);
+      saveLocalCollection(items, userId);
       onUpdate(items);
     },
     (err) => {
       console.warn('Firestore subscription error:', err);
-      onUpdate(getLocalCollection());
+      onUpdate(getLocalCollection(userId));
     }
   );
 }
@@ -261,9 +261,9 @@ export async function createInAppOrder(order: AppOrderRecord): Promise<void> {
   // Local storage
   try {
     const existing: AppOrderRecord[] = JSON.parse(
-      localStorage.getItem(LOCAL_STORAGE_ORDERS_KEY) || '[]'
+      localStorage.getItem(`${LOCAL_STORAGE_ORDERS_KEY}:${auth.currentUser?.uid || 'guest'}`) || '[]'
     );
-    localStorage.setItem(LOCAL_STORAGE_ORDERS_KEY, JSON.stringify([order, ...existing]));
+    localStorage.setItem(`${LOCAL_STORAGE_ORDERS_KEY}:${auth.currentUser?.uid || 'guest'}`,  JSON.stringify([order, ...existing]));
   } catch (e) {
     console.error(e);
   }
