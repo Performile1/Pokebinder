@@ -1,5 +1,5 @@
-import { PokecollectorSet, PokemonCard, CardPriceTimeline, PriceHistoryPoint, CompletedSaleRecord } from '../types';
-import { POKEMON_CARD_DATABASE } from './pokemonCards';
+import type { PokecollectorSet, PokemonCard, CardPriceTimeline, PriceHistoryPoint, CompletedSaleRecord } from '../types.js';
+import { POKEMON_CARD_DATABASE } from './pokemonCards.js';
 
 export const POKECOLLECTOR_SETS: PokecollectorSet[] = [
   // --- SCARLET & VIOLET ---
